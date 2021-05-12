@@ -1,7 +1,7 @@
 // Copyright (c) 2021 Sergey Lyubka
 // All rights reserved
 
-#include "device.h"
+#include "board.h"  // Set ARCH and BOARD in the Makefile
 
 int main(void) {
   init_ram();

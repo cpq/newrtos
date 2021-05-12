@@ -4,6 +4,8 @@
 // Settings common to all stm32f1xx
 // TRM: https://www.st.com/resource/en/reference_manual/cd00171190.pdf
 
+#pragma once
+
 #include <stdint.h>
 #include <string.h>
 

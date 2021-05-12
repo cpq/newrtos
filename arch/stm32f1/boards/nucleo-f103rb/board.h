@@ -3,6 +3,8 @@
 //
 // This file contains settings specific to a particular stm32f1 board
 
+#pragma once
+
 #include "mcu.h"
 
 // These are NUCLEO-F103RB settings - adjust for your specific board
