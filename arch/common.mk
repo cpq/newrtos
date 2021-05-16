@@ -1,22 +1,15 @@
-ROOT = $(realpath $(CURDIR)/../..)
 PROG ?= firmware
-ARCH_PATH = $(ROOT)/arch/$(ARCH)
+ROOT_PATH = $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+ARCH_PATH = $(ROOT_PATH)/arch/$(ARCH)
 BOARD_PATH = $(ARCH_PATH)/boards/$(BOARD)
 
-ifeq "$(ARCH)" "stm32f1"
-MCU = -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
-else ifeq "$(ARCH)" "stm32f3"
-MCU = -mcpu=cortex-m3 -mthumb
-else ifeq "$(ARCH)" "stm32f7"
-MCU = -mcpu=cortex-m7 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard
-endif
-
-INCS ?= -I$(ARCH_PATH) -I$(BOARD_PATH) -I.
+INCLUDES ?= -I. -I$(ARCH_PATH) -I$(BOARD_PATH) -I$(ROOT_PATH)/include/cmsis
 COPT ?= -W -Wall -Werror -Os -g
-CFLAGS += $(COPT) $(MCU) -fdata-sections -ffunction-sections $(INCS) $(EXTRA)
-LDFLAGS += $(MCU) -specs=nano.specs -Tobj/link.ld -nostartfiles -lgcc
-SRCS += $(wildcard src/*.c)
-OBJS = obj/boot.o $(SRCS:%.c=obj/%.o) # ORDER MATTERS: boot first (interrupt vector table is there)
+CFLAGS += $(COPT) $(MCU_FLAGS) -fdata-sections -ffunction-sections $(INCLUDES) $(EXTRA)
+LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=rdimon.specs -lc -lgcc -lrdimon -u _printf_float
+# LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=nosys.specs
+SOURCES += $(wildcard src/*.c)
+OBJECTS = obj/boot.o $(SOURCES:%.c=obj/%.o)
 
 all: $(PROG).hex
 
@@ -26,31 +19,36 @@ $(PROG).bin: $(PROG).elf
 $(PROG).hex: $(PROG).bin
 	arm-none-eabi-objcopy -I binary -O ihex --change-address 0x8000000 $< $@
 
-obj/link.ld: $(ARCH_PATH)/link.ld
-	arm-none-eabi-cpp -P -I$(ARCH_PATH) -imacros $(BOARD_PATH)/board.h $< > $@
-
-$(PROG).elf: $(OBJS) obj/link.ld
-	arm-none-eabi-gcc $(OBJS) $(LDFLAGS) -o $@
+$(PROG).elf: $(OBJECTS) $(ARCH_PATH)/link.ld
+	arm-none-eabi-gcc $(OBJECTS) $(LINKFLAGS) -o $@
+	arm-none-eabi-size -A $@
 
 obj/%.o: %.c
 	@mkdir -p $(dir $@)
 	arm-none-eabi-gcc $(CFLAGS) -c $< -o $@
 
-obj/boot.o:
+obj/boot.o: $(ARCH_PATH)/boot.s
 	@mkdir -p $(dir $@)
-	arm-none-eabi-as --warn --fatal-warnings $(MCU) $(ARCH_PATH)/boot.s -o $@
+	arm-none-eabi-as -g --warn --fatal-warnings $(MCU_FLAGS) $< -o $@
 
 flash: $(PROG).bin
-	st-flash --reset write $< 0x8000000
+	st-flash write $< 0x8000000
 
-# Before running this command, run `st-util` in a separate terminal
-gdb: $(PROG).elf
+openocd:
+	openocd -f $(ARCH)/openocd.cfg
+
+ELF ?= $(PROG).elf
+gdb:
 	arm-none-eabi-gdb \
 		-ex 'set confirm off' \
-        -ex 'target extended-remote :4242' \
+        -ex 'target extended-remote :3333' \
+        -ex 'monitor arm semihosting enable' \
         -ex 'monitor reset halt' \
+        -ex 'load' \
         -ex 'monitor reset init' \
-        $<
+        -ex '$(GDBCMD)' \
+        -ex 'r' \
+        $(ELF)
 
 clean:
 	@rm -rf *.{bin,elf,map,lst,tgz,zip,hex} obj

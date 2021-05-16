@@ -1,5 +1,5 @@
 ARCH  ?= stm32f3
 BOARD ?= nucleo-f303k8
-SRCS  = main.c
+SOURCES = main.c
 
-include ../../arch/common.mk
+include ../../arch/$(ARCH)/build.mk

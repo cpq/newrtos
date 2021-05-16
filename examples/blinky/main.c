@@ -1,15 +1,17 @@
 // Copyright (c) 2021 Sergey Lyubka
 // All rights reserved
 
-#include "board.h"  // Set ARCH and BOARD in the Makefile
+#include <stdio.h>
+#include "board.h"
 
 int main(void) {
-  init_ram();
   init_hardware();
 
+  // int c = 0;
   for (;;) {
     led_toggle();
-    spin(500000);
+    // printf("%s %d\n", "hi...", c++);
+    spin(1500000);
   }
 
   return 0;

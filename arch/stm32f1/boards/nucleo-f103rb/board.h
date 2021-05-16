@@ -1,15 +1,10 @@
 // Copyright (c) 2021 Sergey Lyubka
 // All rights reserved
-//
-// This file contains settings specific to a particular stm32f1 board
 
 #pragma once
 
 #include "mcu.h"
 
-// These are NUCLEO-F103RB settings - adjust for your specific board
-#define RAM_SIZE 20480    // RAM size on this device, needed by link.ld
-#define ROM_SIZE 131072   // Flash size for this device, needed by link.ld
 #define LED1 PIN('A', 5)  // On-board LED pin
 
 static inline void led_toggle(void) {

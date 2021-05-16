@@ -1,4 +1,4 @@
-.cpu cortex-m3
+.cpu cortex-m7
 .thumb
 
 .section .vectortab,"a",%progbits
@@ -19,18 +19,23 @@
 .word   0                    // 13 RESERVED
 .word   halt                 // 14 PendSV
 .word   pass                 // 15 SysTick
-
+                             //         98 STM32 handlers
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
+.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
+.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
+.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
+.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
+.word   halt,halt,halt,halt,halt,halt,halt,halt
 
 .section .text
 .global _reset
 _reset:
-    bl main   // Jump to main()
-    b .       // If main() returns - just halt here
+  bl main   // Jump to main()
+  b .       // If main() returns - just halt here
 
 halt:   b halt
 pass:   BX lr

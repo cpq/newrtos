@@ -1,7 +1,7 @@
 ENTRY(_reset);
 MEMORY {
-  ram(rwx)  : ORIGIN = 0x20000000, LENGTH = 12k
-  rom(rx)   : ORIGIN = 0x08000000, LENGTH = 64k
+  ram(rwx)  : ORIGIN = 0x20000000, LENGTH = 320k
+  rom(rx)   : ORIGIN = 0x08000000, LENGTH = 1024k
 }
 _estack     = ORIGIN(ram) + LENGTH(ram);    /* boot.s and init_heap() */
 SECTIONS {

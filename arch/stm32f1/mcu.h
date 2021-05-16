@@ -37,14 +37,6 @@ enum {
   RCC_CFGR_PLLMULL9 = (7U << 18)
 };
 
-static inline void init_ram(void) {
-  extern uint32_t _bss_start, _bss_end;
-  extern uint32_t _data_start, _data_end, _data_flash_start;
-  memset(&_bss_start, 0, ((char *) &_bss_end - (char *) &_bss_start));
-  memcpy(&_data_start, &_data_flash_start,
-         ((char *) &_data_end - (char *) &_data_start));
-}
-
 // GPIO registers, TRM section 9.2, memory map section 3.3, regs 9.1.0
 enum {
   GPIO_OUT_PP,
@@ -88,4 +80,24 @@ static inline void gpio_init(uint16_t pin, uint32_t mode) {
   volatile uint32_t *reg = n < 8 ? &gpio_bank(pin)->CRL : &gpio_bank(pin)->CRH;
   *reg &= ~(15 << shift);
   *reg |= mode << shift;
+}
+
+static inline void init_ram(void) {
+  extern uint32_t _sbss, _ebss;
+  extern uint32_t _sdata, _edata, _sidata;
+  memset(&_sbss, 0, ((char *) &_ebss - (char *) &_sbss));
+  memcpy(&_sdata, &_sidata, ((char *) &_edata - (char *) &_sdata));
+}
+
+static inline void init_clock(void) {
+  RCC->CR |= (RCC_CR_HSEON);
+  while (!(RCC->CR & RCC_CR_HSERDY)) (void) 0;
+  RCC->CFGR &= ~(RCC_CFGR_SW);
+  RCC->CFGR |= (RCC_CFGR_SW_HSE);
+  RCC->CFGR &= ~(RCC_CFGR_PLLMULL);
+  RCC->CFGR |= (RCC_CFGR_PLLMULL9);
+  RCC->CR |= (RCC_CR_PLLON);
+  while (!(RCC->CR & RCC_CR_PLLRDY)) (void) 0;
+  RCC->CFGR &= ~(RCC_CFGR_SW);
+  RCC->CFGR |= (RCC_CFGR_SW_PLL);
 }
