@@ -7,10 +7,10 @@
 int main(void) {
   init_hardware();
 
-  // int c = 0;
+  // int counter = 0;
   for (;;) {
     led_toggle();
-    // printf("%s %d\n", "hi...", c++);
+    // printf("%s %d %f\n", "hi...", counter++, 0.123); // Semihosting debug
     spin(1500000);
   }
 
