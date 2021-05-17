@@ -15,5 +15,5 @@ static inline void init_hardware(void) {
   init_clock();
 
   RCC->AHBENR |= BIT(17) | BIT(18) | BIT(19);  // Initialise GPIO banks A,B,C
-  gpio_init(LED1, OUTPUT);                     // Initialise LED
+  gpio_init(LED1, GPIO_OUT, GPIO_PP, GPIO_SPEED_LOW, GPIO_PULL_NONE, 0);
 }

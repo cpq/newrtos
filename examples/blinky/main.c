@@ -6,11 +6,10 @@
 
 int main(void) {
   init_hardware();
+  printf("free RAM: %u\n", (unsigned) rtos_heap_available());
 
-  // int counter = 0;
   for (;;) {
     led_toggle();
-    // printf("%s %d %f\n", "hi...", counter++, 0.123); // Semihosting debug
     spin(1500000);
   }
 

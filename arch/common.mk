@@ -3,12 +3,15 @@ ROOT_PATH = $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 ARCH_PATH = $(ROOT_PATH)/arch/$(ARCH)
 BOARD_PATH = $(ARCH_PATH)/boards/$(BOARD)
 
-INCLUDES ?= -I. -I$(ARCH_PATH) -I$(BOARD_PATH) -I$(ROOT_PATH)/include/cmsis
+INCLUDES ?= -I. -I$(ROOT_PATH) -I$(ARCH_PATH) -I$(BOARD_PATH) -I$(ROOT_PATH)/arch/cmsis
 COPT ?= -W -Wall -Werror -Os -g
 CFLAGS += $(COPT) $(MCU_FLAGS) -fdata-sections -ffunction-sections $(INCLUDES) $(EXTRA)
-LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=rdimon.specs -lc -lgcc -lrdimon -u _printf_float
-# LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=nosys.specs
-SOURCES += $(wildcard src/*.c)
+ifeq "$(DEBUG)" "1"
+LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=rdimon.specs -lrdimon
+else
+LINKFLAGS += $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -specs=nosys.specs
+endif
+SOURCES += $(ROOT_PATH)/rtos.c
 OBJECTS = obj/boot.o $(SOURCES:%.c=obj/%.o)
 
 all: $(PROG).hex
@@ -21,7 +24,7 @@ $(PROG).hex: $(PROG).bin
 
 $(PROG).elf: $(OBJECTS) $(ARCH_PATH)/link.ld
 	arm-none-eabi-gcc $(OBJECTS) $(LINKFLAGS) -o $@
-	arm-none-eabi-size -A $@
+	arm-none-eabi-size $@
 
 obj/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -35,9 +38,10 @@ flash: $(PROG).bin
 	st-flash write $< 0x8000000
 
 openocd:
-	openocd -f $(ARCH)/openocd.cfg
+	openocd -f $(ARCH_PATH)/openocd.cfg
 
 ELF ?= $(PROG).elf
+GDBCMD ?= b main
 gdb:
 	arm-none-eabi-gdb \
 		-ex 'set confirm off' \
