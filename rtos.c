@@ -31,3 +31,13 @@ void *_sbrk(ptrdiff_t diff) {
   s_brk += diff;
   return old;
 }
+
+void rtos_task_create(void (*fn)(void *), void *data, size_t ssize, int prio) {
+  (void) prio;
+  (void) ssize;
+  fn(data);
+}
+
+void rtos_schedule(void) {
+  for (;;) (void) 0;
+}

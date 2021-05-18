@@ -8,6 +8,10 @@ Build example firmware:
   ```console
   $ make -C examples/blinky clean all ARCH=stm32f3 BOARD=nucleo-f303k8
   ```
+To flash a firmware, connect your board and run:
+  ```console
+  $ make -C examples/blinky flash
+  ```
 
 Possible combinations for ARCH and BOARD are listed below:
 
