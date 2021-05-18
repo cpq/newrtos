@@ -62,5 +62,5 @@ static inline void init_clock(void) {
   RCC->CFGR &= ~(RCC_CFGR_SW);
   RCC->CFGR |= (RCC_CFGR_SW_PLL);
 
-  // SysTick_Config(72000);  // Enable SysTick interrupt
+  SysTick_Config(72000);  // Enable SysTick interrupt
 }

@@ -15,7 +15,7 @@ static void task1(void *param) {
 }
 
 int main(void) {
-  init_hardware();
+  rtos_init();
   DEBUG(("free RAM: %u\n", (unsigned) rtos_heap_available()));
   rtos_task_create(task1, NULL, 256, 10);
   rtos_schedule();

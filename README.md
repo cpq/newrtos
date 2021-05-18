@@ -45,6 +45,17 @@ The `DEBUG=1` adds a `--specs rdimon` linker flag, which enables a semihosting
 feature on ARM. That means, all stdio functions like `printf()` will be
 retargeted to an openocd console output - useful for a quick printf-debugging.
 
+# API Reference
+
+- **rtos_init(void);** - must be the first function called by main()
+- **rtos_msleep(ms);** - sleep `ms` milliseconds
+- **rtos_task_create(fn, data, stacksize, prio);** - create task
+- **rtos_schedule();** - run scheduler, never return
+- **uint16_t led = PIN('A', 5);** - declare a GPIO pin
+- **gpio_on(pin);** - set GPIO pin on
+- **gpio_off(pin);** - set GPIO pin off
+- **gpio_toggle(pin);** - toggle GPIO pin
+
 # Roadmap
 
 The plan is to:
