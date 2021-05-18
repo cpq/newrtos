@@ -3,15 +3,9 @@
 // https://www.st.com/resource/en/reference_manual/dm00124865-stm32f75xxx-and-stm32f74xxx-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf
 // Memory map: 2.2.2
 
+#include "common.h"
 #include "stm32f746xx.h"
-#include "string.h"
 
-#define BIT(x) ((uint32_t) 1 << (x))
-#define PIN(bank, num) ((((bank) - 'A') << 8) | (num))
-
-static inline void spin(uint32_t count) {
-  while (count--) asm("nop");
-}
 static inline GPIO_TypeDef *gpio_bank(uint16_t pin) {
   return (GPIO_TypeDef *) (0x40020000 + 0x400 * (pin >> 8));
 }
@@ -74,11 +68,6 @@ static inline void init_clock(void) {
   RCC->CFGR &= ~RCC_CFGR_SW;     // Select the main PLL
   RCC->CFGR |= RCC_CFGR_SW_PLL;  // as system clock source
   while ((RCC->CFGR & RCC_CFGR_SWS) == 0) (void) 0;
-}
 
-static inline void init_ram(void) {
-  extern uint32_t _sbss, _ebss;
-  extern uint32_t _sdata, _edata, _sidata;
-  memset(&_sbss, 0, ((char *) &_ebss - (char *) &_sbss));
-  memcpy(&_sdata, &_sidata, ((char *) &_edata - (char *) &_sdata));
+  SysTick_Config(216000);  // Enable SysTick interrupt
 }

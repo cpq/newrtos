@@ -1,8 +1,8 @@
-.cpu cortex-m7
+.cpu cortex-m4
 .thumb
 
 .section .vectortab,"a",%progbits
-                             //       Cortex-M7 interrupt handlers
+// Cortex-M standard interrupt handlers
 .word   _estack              // 0 Stack top address
 .word   _reset               // 1 Reset
 .word   pass                 // 2 NMI
@@ -18,24 +18,23 @@
 .word   halt                 // 12 Debug reserved
 .word   0                    // 13 RESERVED
 .word   halt                 // 14 PendSV
-.word   pass                 // 15 SysTick
-                             //         98 STM32 handlers
+.word   SysTick_Handler      // 15 SysTick
+// STM32 specific handlers
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
 .word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
-.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
-.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
-.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
-.word   halt,halt,halt,halt,halt,halt,halt,halt,halt,halt
-.word   halt,halt,halt,halt,halt,halt,halt,halt
 
 .section .text
+.thumb_func
 .global _reset
 _reset:
   bl main   // Jump to main()
   b .       // If main() returns - just halt here
 
+.thumb_func
 halt:   b halt
-pass:   BX lr
+
+.thumb_func
+pass:   bx lr

@@ -3,9 +3,11 @@
 
 #pragma once
 
-void rtos_heap_init(void *ptr, size_t size);  // Initialise malloc
-size_t rtos_heap_used(void);                  // Return used heap size
-size_t rtos_heap_available(void);             // Return available heap size
+void rtos_heap_init(void *start, void *end);  // Initialise malloc
+int rtos_heap_used(void);                     // Return used heap size
+int rtos_heap_available(void);                // Return available heap size
 
-void rtos_task_create(void (*fn)(void *), void *data, size_t stksize, int prio);
-void rtos_schedule(void);
+void rtos_task_create(void (*fn)(void *), void *data, int stksize, int prio);
+void rtos_schedule(void);  // Run scheduler, never return
+
+unsigned long rtos_msleep(unsigned long milliseconds);  // Sleep, return systick

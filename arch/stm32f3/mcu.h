@@ -6,17 +6,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <string.h>
-#include "rtos.h"
+#include "common.h"
 #include "stm32f303x8.h"
-
-static inline void spin(uint32_t count) {
-  while (count--) asm("nop");
-}
-
-#define BIT(x) ((uint32_t) 1 << (x))
-#define PIN(bank, num) ((((bank) - 'A') << 8) | (num))
 
 static inline GPIO_TypeDef *gpio_bank(uint16_t pin) {
   return (GPIO_TypeDef *) (0x48000000 + 0x400 * (pin >> 8));
@@ -55,18 +46,6 @@ static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
   }
 }
 
-static inline void init_ram(void) {
-  extern uint32_t _sbss, _ebss;
-  extern uint32_t _sdata, _edata, _sidata;
-  memset(&_sbss, 0, ((char *) &_ebss - (char *) &_sbss));
-  memcpy(&_sdata, &_sidata, ((char *) &_edata - (char *) &_sdata));
-
-  extern uint32_t _end, _estack;
-  uint8_t *ptr = (uint8_t *) ((((uint32_t) &_end) + 7) & ~7U);  // 8 byte align
-  uint32_t len = (uint32_t)((char *) &_estack - (char *) &_end);
-  rtos_heap_init(ptr, len);
-}
-
 static inline void init_clock(void) {
   RCC->CR |= RCC_CR_HSION;
   while (!(RCC->CR & RCC_CR_HSIRDY)) (void) 0;
@@ -79,4 +58,6 @@ static inline void init_clock(void) {
   while (!(RCC->CR & RCC_CR_PLLRDY)) (void) 0;
   RCC->CFGR &= ~RCC_CFGR_SW;
   RCC->CFGR |= RCC_CFGR_SW_PLL;
+
+  SysTick_Config(36000);  // Enable SysTick interrupt every 1ms
 }

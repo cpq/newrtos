@@ -2,20 +2,22 @@
 // All rights reserved
 
 #include <stdio.h>
+
 #include "board.h"
 
 static void task1(void *param) {
+  (void) param;  // Unused
   for (;;) {
-    led_toggle();
-    spin(1500000);
-    printf("%s, RAM: %u\n", (char *) param, (unsigned) rtos_heap_available());
+    gpio_toggle(LED1);
+    rtos_msleep(500);
+    DEBUG(("RAM: %u\n", (unsigned) rtos_heap_available()));
   }
 }
 
 int main(void) {
   init_hardware();
-  printf("free RAM: %u\n", (unsigned) rtos_heap_available());
-  rtos_task_create(task1, "task1", 256, 10);
+  DEBUG(("free RAM: %u\n", (unsigned) rtos_heap_available()));
+  rtos_task_create(task1, NULL, 256, 10);
   rtos_schedule();
   return 0;
 }

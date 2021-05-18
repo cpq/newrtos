@@ -1,4 +1,4 @@
-ARCH  ?= stm32f303x8
+ARCH  ?= stm32f3
 BOARD ?= nucleo-f303k8
 SOURCES = main.c
 

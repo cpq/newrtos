@@ -1,9 +1,5 @@
 ENTRY(_reset);
-MEMORY {
-  ram(rwx)  : ORIGIN = 0x20000000, LENGTH = 12k
-  rom(rx)   : ORIGIN = 0x08000000, LENGTH = 64k
-}
-_estack     = ORIGIN(ram) + LENGTH(ram);    /* boot.s and init_heap() */
+_estack     = ORIGIN(ram) + LENGTH(ram);  /* for boot.s and init_heap() */
 SECTIONS {
   .vectortab  : { KEEP(*(.vectortab)) } > rom
   .text       : { *(.text*) } > rom
@@ -25,7 +21,7 @@ SECTIONS {
     __bss_end__ = _ebss;    /* for libc */
   } > ram
 
-  . = ALIGN(8);
+  . = ALIGN(8); /* Make sure that heap pointer is 8-byte aligned */
   end = .;      /* for syscalls.c */
   _end = .;     /* for cmsis_gcc.h and init_ram() */
   __end__ = .;  /* for libc */
