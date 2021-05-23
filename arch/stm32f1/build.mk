@@ -1,5 +1,4 @@
-ARCH ?= stm32f3
 SELF_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_FLAGS ?= -mcpu=cortex-m4 -mthumb
+MCU_FLAGS ?= -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
 
 include $(SELF_DIR)/../../arch/common.mk

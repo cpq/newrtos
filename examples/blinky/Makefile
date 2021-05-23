@@ -1,4 +1,4 @@
-BOARD ?= nucleo-f103rb
+ARCH ?= stm32f1
 SOURCES = main.c
 
-include ../../boards/$(BOARD)/build.mk
+include ../../arch/$(ARCH)/build.mk

@@ -6,11 +6,15 @@
 
 #pragma once
 
-#include "common.h"
-#include "stm32f303x8.h"
+#include "arch/common.h"
 
-static inline GPIO_TypeDef *gpio_bank(uint16_t pin) {
-  return (GPIO_TypeDef *) (0x48000000 + 0x400 * (pin >> 8));
+struct gpio {
+  volatile uint32_t MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, LCKR, AFR[2],
+      BRR;
+};
+
+static inline struct gpio *gpio_bank(uint16_t pin) {
+  return (struct gpio *) (0x48000000 + 0x400 * (pin >> 8));
 }
 static inline void gpio_on(uint16_t pin) {
   gpio_bank(pin)->ODR |= BIT(pin & 255);
@@ -27,7 +31,7 @@ enum { GPIO_SPEED_LOW, GPIO_SPEED_MEDIUM, GPIO_SPEED_HIGH = 3 };
 enum { GPIO_PULL_NONE, GPIO_PULL_UP, GPIO_PULL_DOWN };
 static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
                              uint8_t speed, uint8_t pull, uint8_t af) {
-  GPIO_TypeDef *gpio = gpio_bank(pin);
+  struct gpio *gpio = gpio_bank(pin);
   uint8_t n = pin & 255;
   gpio->MODER &= ~(3 << (n * 2));
   gpio->MODER |= (mode << (n * 2));
@@ -46,6 +50,23 @@ static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
   }
 }
 
+struct rcc {
+  volatile uint32_t CR, CFGR, CIR, APB2RSTR, APB1RSTR, AHBENR, APB2ENR, APB1ENR,
+      BDCR, CSR, AHBRSTR, CFGR2, CFGR3;
+};
+#define RCC ((struct rcc *) 0x40021000)
+#define RCC_CR_HSION BIT(0)
+#define RCC_CR_HSIRDY BIT(1)
+#define RCC_CR_PLLON BIT(24)
+#define RCC_CR_PLLRDY BIT(25)
+#define RCC_CFGR_PLLSRC BIT(16)
+#define RCC_CFGR_PLLMUL (15UL << 18)
+#define RCC_CFGR_PLLMUL9 0x1c0000
+#define RCC_CFGR_SW 3
+#define RCC_CFGR_SW_HSI 0
+#define RCC_CFGR_SW_HSE 1
+#define RCC_CFGR_SW_PLL 2
+
 static inline void init_clock(void) {
   RCC->CR |= RCC_CR_HSION;
   while (!(RCC->CR & RCC_CR_HSIRDY)) (void) 0;
@@ -60,4 +81,16 @@ static inline void init_clock(void) {
   RCC->CFGR |= RCC_CFGR_SW_PLL;
 
   SysTick_Config(36000);  // Enable SysTick interrupt every 1ms
+}
+
+#ifndef LED1
+#define LED1 PIN('B', 3)  // On-board LED pin
+#endif
+
+static inline void rtos_init(void) {
+  init_ram();
+  init_clock();
+
+  RCC->AHBENR |= BIT(17) | BIT(18) | BIT(19);  // Enable GPIO banks A,B,C
+  gpio_init(LED1, GPIO_OUT, GPIO_PP, GPIO_SPEED_LOW, GPIO_PULL_NONE, 0);
 }

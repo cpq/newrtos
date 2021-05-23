@@ -1,9 +1,10 @@
 # RTOS for embedded systems
 
-A RTOS designed for performance and ease of integration. Features:
+An open source firmware development framework that includes RTOS and
+drivers. Features include:
 
-- Uses GCC tools, and no extra dependencies
-- All tasks are of equal priority, with 1ms context switch interval
+- Uses GCC toolchain and no extra dependencies
+- All RTOS tasks are of equal priority, with 1ms context switch interval
 
 # Build
 
@@ -13,33 +14,33 @@ Install packages `arm-none-eabi-gcc`, `st-link`, `openocd` (assuming Ubuntu):
   ```
 Build example firmware:
   ```console
-  $ make -C examples/blinky clean all BOARD=nucleo-f303k8
+  $ make -C examples/blinky clean all ARCH=stm32f1
   ```
 To flash a firmware, connect your board and run:
   ```console
   $ make -C examples/blinky flash
   ```
 
-Possible values for BOARD are listed below:
+Possible values for ARCH are listed below:
 
-| BOARD | Notes |
+| ARCH | Notes |
 | ----- | ----- |
-| nucleo-f103rb | 72Mhz, 20k RAM, 128k Flash |
-| nucleo-f303k8 | 72MHz, 12k RAM, 64k Flash |
-| nucleo-f746zg | 216MHz, 320k RAM, 1024k Flash |
+| stm32f1 | 72Mhz, 20k RAM, 128k Flash |
+| stm32f3 | 72MHz, 12k RAM, 64k Flash |
+| stm32f7 | 216MHz, 320k RAM, 1024k Flash |
 
 # Debugging
 
 In order to debug, first run `openocd` in one terminal:
 
 ```console
-$ make -C examples/blinky BOARD=nucleo-f303k8 openocd
+$ make -C examples/blinky ARCH=stm32f3 openocd
 ```
 
 In another terminal, build with `DEBUG=1` and start a GDB debugger:
 
 ```console
-$ make -C examples/blinky BOARD=nucleo-f303k8 DEBUG=1 make clean all gdb
+$ make -C examples/blinky ARCH=stm32f3 DEBUG=1 make clean all gdb
 ```
 
 By default, GDB breakpoints in `main()`. Tip: use `layout split` GDB command

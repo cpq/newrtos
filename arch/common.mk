@@ -5,9 +5,10 @@ BOARD_PATH = $(ROOT_PATH)/boards/$(BOARD)
 TOOLCHAIN ?= arm-none-eabi
 OBJ_PATH = obj
 
-INCLUDES ?= -I. -I$(ROOT_PATH) -I$(ROOT_PATH)/arch -I$(ARCH_PATH) -I$(BOARD_PATH) -I$(ROOT_PATH)/arch/cmsis
-COPT ?= -W -Wall -Werror -Os -g
-CFLAGS += $(COPT) $(MCU_FLAGS) -fdata-sections -ffunction-sections $(INCLUDES) $(EXTRA)
+INCLUDES ?= -I. -I$(ROOT_PATH) -I$(ARCH_PATH)
+COPT ?= -W -Wall -Werror -Os -g -DARCH=$(ARCH)
+#CFLAGS += $(COPT) $(MCU_FLAGS) -fdata-sections -ffunction-sections $(INCLUDES) $(EXTRA)
+CFLAGS += $(COPT) $(MCU_FLAGS) $(INCLUDES) $(EXTRA)
 
 LINKFLAGS ?= $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -T$(ROOT_PATH)/arch/common.ld -specs=nano.specs
 ifeq "$(DEBUG)" "1"

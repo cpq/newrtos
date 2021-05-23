@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "board.h"
+#include "mcu.h"
 
 static void blink(void) {
   gpio_on(LED1);
