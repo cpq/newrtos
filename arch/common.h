@@ -6,6 +6,11 @@
 
 #include "rtos.h"
 
+void rtos_heap_init(void *start, void *end);  // Initialise malloc
+int rtos_heap_used(void);                     // Return used heap size
+int rtos_heap_available(void);                // Return available heap size
+int rtos_scheduler_init(void);                // Initialise scheduler
+
 #define BIT(x) ((uint32_t) 1 << (x))
 #define PIN(bank, num) ((((bank) - 'A') << 8) | (num))
 

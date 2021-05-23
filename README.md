@@ -1,7 +1,11 @@
 # RTOS for embedded systems
 
-A RTOS designed for performance and ease of integration. Uses GCC tools,
-and no extra dependencies.
+A RTOS designed for performance and ease of integration. Features:
+
+- Uses GCC tools, and no extra dependencies
+- All tasks are of equal priority, with 1ms context switch interval
+
+# Build
 
 Install packages `arm-none-eabi-gcc`, `st-link`, `openocd` (assuming Ubuntu):
   ```console
@@ -48,17 +52,13 @@ retargeted to an openocd console output - useful for a quick printf-debugging.
 # API Reference
 
 - **rtos_init(void);** - must be the first function called by main()
+- **rtos_task_create(fn, data, stacksize);** - create task
+- **rtos_schedule(void);** - start task scheduler, do not return
 - **rtos_msleep(ms);** - sleep `ms` milliseconds
-- **rtos_task_create(fn, data, stacksize, prio);** - create task
-- **rtos_schedule();** - run scheduler, never return
+
+This simple GPIO API is just for demo LED blinking
+
 - **uint16_t led = PIN('A', 5);** - declare a GPIO pin
 - **gpio_on(pin);** - set GPIO pin on
 - **gpio_off(pin);** - set GPIO pin off
 - **gpio_toggle(pin);** - toggle GPIO pin
-
-# Roadmap
-
-The plan is to:
-- implement a stub systick interrupt handler
-- implement a simple task scheduler
-- make blinky example use a task rather than a super loop

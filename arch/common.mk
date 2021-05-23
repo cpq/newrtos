@@ -47,7 +47,7 @@ openocd:
 	openocd -f $(ARCH_PATH)/openocd.cfg
 
 ELF ?= $(OBJ_PATH)/$(PROG).elf
-GDBCMD ?= b main
+ARGS ?= -ex 'b main'
 gdb:
 	$(TOOLCHAIN)-gdb \
   -ex 'set confirm off' \
@@ -56,7 +56,7 @@ gdb:
   -ex 'monitor reset halt' \
   -ex 'load' \
   -ex 'monitor reset init' \
-  -ex '$(GDBCMD)' \
+  $(ARGS) \
   -ex 'r' \
   $(ELF)
 

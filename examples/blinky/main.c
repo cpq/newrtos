@@ -5,19 +5,32 @@
 
 #include "board.h"
 
-static void task1(void *param) {
-  (void) param;  // Unused
+static void blink(void) {
+  gpio_on(LED1);
+  rtos_msleep(5);
+  gpio_off(LED1);
+  rtos_msleep(100);
+}
+
+static void taskfunc(void *param) {
+  int delay = *(int *) param;
   for (;;) {
-    gpio_toggle(LED1);
-    rtos_msleep(500);
-    DEBUG(("RAM: %u\n", (unsigned) rtos_heap_available()));
+    blink();
+    if (delay > 1000) blink();
+    rtos_msleep(delay);
+    DEBUG(("%d, RAM: %u\n", delay, (unsigned) rtos_heap_available()));
   }
 }
 
 int main(void) {
   rtos_init();
   DEBUG(("free RAM: %u\n", (unsigned) rtos_heap_available()));
-  rtos_task_create(task1, NULL, 256, 10);
+
+  // Start two blinking tasks with different delays
+  int arg1 = 700, arg2 = 1300;
+  rtos_task_create(taskfunc, &arg1, 512);
+  rtos_task_create(taskfunc, &arg2, 512);
+
   rtos_schedule();
   return 0;
 }
