@@ -1,7 +1,7 @@
 PROG ?= firmware
 ROOT_PATH = $(realpath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 ARCH_PATH = $(ROOT_PATH)/arch/$(ARCH)
-BOARD_PATH = $(ARCH_PATH)/boards/$(BOARD)
+BOARD_PATH = $(ROOT_PATH)/boards/$(BOARD)
 TOOLCHAIN ?= arm-none-eabi
 OBJ_PATH = obj
 
