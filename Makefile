@@ -1,8 +1,14 @@
+#EXAMPLES = $(wildcard examples/*)
+EXAMPLES = examples/blinky
+ARCHITECTURES = stm32f1 stm32f3 stm32f7
+
 # Build firmwares for all supported architectures
 all:
-	make -C examples/blinky ARCH=stm32f1 clean all
-	make -C examples/blinky ARCH=stm32f3 clean all
-	make -C examples/blinky ARCH=stm32f7 clean all
+	for A in $(ARCHITECTURES) ; do \
+    for E in $(EXAMPLES) ; do \
+      make -C $$E ARCH=$$A clean all ; \
+    done; \
+  done
 
 clean:
-	make -C examples/blinky clean
+	for E in $(EXAMPLES) ; do make -C $$E clean ; done

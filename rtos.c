@@ -23,6 +23,7 @@ static int s_start_scheduling;       // Marker to start scheduling
 static char *s_heap_start;           // Heap start. Set up by rtos_heap_init()
 static char *s_heap_end;             // Heap end
 static char *s_brk;                  // Current heap usage marker
+static unsigned long s_freq;         // MCU frequency in HZ
 
 static void rtos_task_delete(struct task *t) {
   DEBUG(("task %d deleting\n", t->id));
@@ -157,6 +158,14 @@ int rtos_heap_available(void) {
 
 void rtos_heap_init(void *start, void *end) {
   s_heap_start = s_brk = start, s_heap_end = end;
+}
+
+void rtos_freq_set(unsigned long freq) {
+  s_freq = freq;
+}
+
+unsigned long rtos_freq_get(void) {
+  return s_freq;
 }
 
 __attribute__((weak)) void *_sbrk(ptrdiff_t diff) {

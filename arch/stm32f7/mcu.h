@@ -43,8 +43,8 @@ static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
     gpio->AFR[0] &= 15 << (n * 4);
     gpio->AFR[0] |= af << (n * 4);
   } else {
-    gpio->AFR[1] &= 15 << (n * 4);
-    gpio->AFR[1] |= af << (n * 4);
+    gpio->AFR[1] &= 15 << ((n - 8) * 4);
+    gpio->AFR[1] |= af << ((n - 8) * 4);
   }
 }
 

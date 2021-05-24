@@ -6,7 +6,7 @@
 #include "mcu.h"
 
 static void blink(void) {
-  gpio_on(LED1);
+  gpio_on(LED1);  // LED1 is defined in mcu.h
   rtos_msleep(5);
   gpio_off(LED1);
   rtos_msleep(100);
