@@ -5,29 +5,25 @@
 
 #include "mcu.h"
 
-static void blink(void) {
-  gpio_on(LED1);  // LED1 is defined in mcu.h
-  rtos_msleep(5);
-  gpio_off(LED1);
-  rtos_msleep(100);
-}
-
 static void taskfunc(void *param) {
-  int delay = *(int *) param;
+  unsigned long delay = *(unsigned long *) param;
+
   for (;;) {
-    blink();
-    if (delay > 1000) blink();
     rtos_msleep(delay);
-    DEBUG(("%d, RAM: %u\n", delay, (unsigned) rtos_heap_available()));
+    gpio_toggle(LED1);
+    DEBUG(("%lu, RAM: %d\n", delay, rtos_ram_free()));
   }
 }
 
 int main(void) {
   rtos_init();
-  DEBUG(("free RAM: %u\n", (unsigned) rtos_heap_available()));
+  DEBUG(("free RAM: %d\n", rtos_ram_free()));
 
-  // Start two blinking tasks with different delays
-  int arg1 = 700, arg2 = 1300;
+  gpio_output(LED1);
+  // for (;;) rtos_msleep(500), gpio_toggle(LED1);
+
+  // Run two blinking tasks with different intervals
+  unsigned long arg1 = 500, arg2 = 700;
   rtos_task_create(taskfunc, &arg1, 512);
   rtos_task_create(taskfunc, &arg2, 512);
 

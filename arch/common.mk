@@ -6,11 +6,11 @@ TOOLCHAIN ?= arm-none-eabi
 OBJ_PATH = obj
 
 INCLUDES ?= -I. -I$(ROOT_PATH) -I$(ARCH_PATH)
-COPT ?= -W -Wall -Werror -Os -g -DARCH=$(ARCH)
-#CFLAGS += $(COPT) $(MCU_FLAGS) -fdata-sections -ffunction-sections $(INCLUDES) $(EXTRA)
-CFLAGS += $(COPT) $(MCU_FLAGS) $(INCLUDES) $(EXTRA)
+WARN ?= -W -Wall -Wextra -Werror -Wundef -Wshadow -Wdouble-promotion -Wformat-truncation -fno-common -Wconversion
+COPT ?= -Os -g3 -ffunction-sections -fdata-sections -DARCH=$(ARCH)
+CFLAGS += $(WARN) $(COPT) $(MCU_FLAGS) $(INCLUDES) $(EXTRA)
 
-LINKFLAGS ?= $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -T$(ROOT_PATH)/arch/common.ld -specs=nano.specs
+LINKFLAGS ?= $(MCU_FLAGS) -T$(ARCH_PATH)/link.ld -T$(ROOT_PATH)/arch/common.ld -specs=nano.specs -Wl,--gc-sections
 ifeq "$(DEBUG)" "1"
 LINKFLAGS += -specs=rdimon.specs -lrdimon
 CFLAGS += -D'DEBUG(x)=printf x'
@@ -60,6 +60,9 @@ gdb:
   $(ARGS) \
   -ex 'r' \
   $(ELF)
+
+d:
+	$(TOOLCHAIN)-gcc $(CFLAGS) -s -S -o - ~/tmp/foo.c | less
 
 clean:
 	@rm -rf *.{bin,elf,map,lst,tgz,zip,hex} $(OBJ_PATH)

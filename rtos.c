@@ -43,9 +43,9 @@ static inline void rtos_task_start(struct task *t) {
   rtos_task_delete(t);
 }
 
-int rtos_task_create(void (*fn)(void *), void *arg, int ssize) {
+int rtos_task_create(void (*fn)(void *), void *arg, size_t ssize) {
   static int id;
-  struct task *task = calloc(1, sizeof(*task) + ssize);
+  struct task *task = malloc(sizeof(*task) + ssize);
   if (task == NULL) return 0;
   task->id = id++;
   task->fn = fn;
@@ -54,12 +54,13 @@ int rtos_task_create(void (*fn)(void *), void *arg, int ssize) {
   s_tasks = s_current_task = task;
 
   // Hand-craft task's cpu context, as if it was interrupted
-  task->sp = ((unsigned long *) ((char *) (task + 1) + ssize)) - 16;
+  task->sp = (unsigned long *) (task + 1) + ssize;
+  if (((uint32_t) task->sp) & 7) task->sp--;   // 8-byte align for soft float
   task->sp[8] = (uintptr_t) task;              // argv[0]
   task->sp[14] = (uintptr_t) rtos_task_start;  // return address
   task->sp[15] = 0x01000000;                   // xPSR
 
-  DEBUG(("created task %d\n", task->id));
+  DEBUG(("created task %d, sp: %p\n", task->id, task->sp));
   return task->id;
 }
 
@@ -80,7 +81,16 @@ void rtos_schedule(void) {
   // Set two low bits in the CONTROL register:
   //   bit 0 - enable unprivileged mode
   //   bit 1 - enable process stack (PSP) for threaded mode
+#if 0
   asm volatile("mrs r0, control; orr r0, #3; msr control, r0; isb;");
+#else
+  asm volatile(
+      "mrs r1, control;"
+      "movs r3, #3;"
+      "orr r0, r3;"
+      "msr control, r0;"
+      "isb;");
+#endif
 
   // Start s_current_task
   asm volatile("ldr r0, =s_current_task; ldr r0, [r0]; bl rtos_task_start;");
@@ -92,31 +102,56 @@ __attribute__((naked)) void PendSV_Handler(void) {
       // if (!s_current_task) goto switch
       "ldr r3, =s_current_task;"  // r3 = &s_current_task
       "ldr r3, [r3];"             // r3 = *r3
-      "cbz r3, 2f;"               // if (r3 == 0) goto switch;
+      "cmp r3, #0;"               // if (r3 == 0)
+      "beq .switch;"              // goto switch; (we don't use cbz for M0)
 
       // Save context of the s_current_task
-      "mrs r0, psp;"          // r0 = psp
-      "stmdb r0!, {r4-r11};"  // Store r4-r11 into the process's stack
+      "mrs r0, psp;"  // r0 = psp. Next is:
+#if 0
+      "stmdb r0!, {r4-r11};"  // Save r4-r11 into PSP. Does not work on M0
       "str r0, [r3];"         // s_current_task->sp = r0
+#else
+      "sub r0, #32;"         // Space for another 8 registers
+      "str r0, [r3];"        // s_current_task->sp = r0
+      "stmia r0!, {r4-r7};"  // Store r4-r7 into the process's stack
+      "mov r4, r8;"
+      "mov r5, r9;"
+      "mov r6, r10;"
+      "mov r7, r11;"
+      "stmia r0!, {r4-r7};"  // Store r8-r11 into the process's stack
+#endif
 
       // Switch s_current_task to the next task
-      "2:;"                   // Switch marker
+      ".switch:;"             // Switch marker
       "push {lr};"            // Save lr
       "bl rtos_task_switch;"  // Update s_current_task
-      "pop {lr};"             // Restore lr
+      "pop {r2};"             // Restore lr into r2
 
       // Now s_current_task is different. Load its context
       "ldr r3, =s_current_task;"  // r3 = &s_current_task
       "ldr r3, [r3];"             // r3 = *r3
-      "cbz r3, 1f;"               // if (r3 == 0) goto done;
+      "cmp r3, #0;"               // if (r3 == 0)
+      "beq .done;"                // goto done;
 
       // s_current_task changed. Load its context
-      "ldr r0, [r3];"         // r0 = psp
+      "ldr r0, [r3];"  // r0 = psp
+#if 0
       "ldmia r0!, {r4-r11};"  // Load r4-r11
-      "msr psp, r0; isb;"     // Update PSP
+#else
+      "add r0, #16;"
+      "ldmia r0!, {r4-r7};"  // Load r8-r11
+      "mov r8, r4;"
+      "mov r9, r5;"
+      "mov r10, r6;"
+      "mov r11, r7;"
+      "sub r0, #32;"
+      "ldmia r0!, {r4-r7};"  // Load r4-r7
+      "add r0, #16;"
+#endif
+      "msr psp, r0; isb;"  // Update PSP
 
-      "1:;"    // Exit marker
-      "bx lr"  // Return to the switched process
+      ".done:;"  // Exit marker
+      "bx r2"    // Return to the switched process
   );
 }
 
@@ -148,11 +183,11 @@ void _exit(int code) {
 //      |--------------------------|----------------------|
 //      |      (used memory)       |    (free memory)     |
 
-int rtos_heap_used(void) {
+int rtos_ram_used(void) {
   return s_brk - s_heap_start;
 }
 
-int rtos_heap_available(void) {
+int rtos_ram_free(void) {
   return s_heap_end - s_brk;
 }
 

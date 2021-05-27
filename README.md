@@ -24,17 +24,21 @@ To flash a firmware, connect your board and run:
 # API Reference
 
 - **Task management**
-  - **rtos_init(void);** - must be the first function called by main()
+  - **rtos_init();** - must be the first function called by main()
   - **rtos_task_create(fn, data, stacksize);** - create task
-  - **rtos_schedule(void);** - start task scheduler, do not return
-- **Timers**
+  - **rtos_schedule();** - start task scheduler, do not return
+- **Utility**
   - **rtos_msleep(ms);** - sleep `ms` milliseconds
+  - **rtos_ram_free();** - return available RAM in bytes
+  - **rtos_ram_used();** - return used RAM in bytes
 - **GPIO**
-  - **uint16_t led = PIN('A', 5);** - declare a GPIO pin
+  - **PIN(bank, num);** - declare a GPIO pin: `uint16_t pin = PIN('A', 5);`
   - **gpio_init(pin, mode, type, speed, pull, af);** - init GPIO pin
   - **gpio_on(pin);** - set GPIO pin on
   - **gpio_off(pin);** - set GPIO pin off
   - **gpio_toggle(pin);** - toggle GPIO pin
+  - **gpio_input(pin);** - (convenience) set input mode on a GPIO pin
+  - **gpio_output(pin);** - (convenience) set output mode on a GPIO pin
 - **UART**
   - **uart_init(uart, tx_pin, rx_pin, baud);** - initialise UART
   - **uart_write_byte(uart, byte);** - write one byte
@@ -46,9 +50,10 @@ To flash a firmware, connect your board and run:
 
 |   ARCH  | Clock   | Task | GPIO | UART | SPI | I2C |
 | ------- | ------- | ---- | ---- | ---- | --- | --- |
-| stm32f1 | 72Mhz   | yes  | yes  | no   | no  | no  |
-| stm32f3 | 72MHz   | yes  | yes  | yes  | no  | no  |
-| stm32f7 | 216MHz  | yes  | yes  | no   | no  | no  |
+| stm32f0 | 48Mhz   | yes  | yes  | yes  | -   | -   |
+| stm32f1 | 72Mhz   | yes  | yes  | yes  | -   | -   |
+| stm32f3 | 72MHz   | yes  | yes  | yes  | -   | -   |
+| stm32f7 | 216MHz  | yes  | yes  | -    | -   | -   |
 
 # Debugging
 

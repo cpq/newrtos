@@ -1,22 +1,17 @@
 // Copyright (c) 2021 Sergey Lyubka
 // All rights reserved
 
-#include <stdio.h>
-
 #include "mcu.h"
 #include "mjson.h"
 
-static void gpio_write_rpc(struct jsonrpc_request *r) {
-  double pin = -1, val = -1;
-  mjson_get_number(r->params, r->params_len, "$.pin", &pin);
-  mjson_get_number(r->params, r->params_len, "$.val", &val);
-  if (pin >= 0 && val >= 0) {
-    gpio_init(pin, GPIO_OUT, GPIO_PP, GPIO_SPEED_LOW, GPIO_PULL_NONE, 0);
-    if (val) gpio_on(pin);
-    if (!val) gpio_off(pin);
-    jsonrpc_return_success(r, "true");
+static void gpio_led_rpc(struct jsonrpc_request *r) {
+  int on = 0;
+  if (mjson_get_bool(r->params, r->params_len, "$.on", &on)) {
+    if (on) gpio_on(LED1);
+    if (!on) gpio_off(LED1);
+    jsonrpc_return_success(r, "{%Q:%d}", "ram", rtos_ram_free());
   } else {
-    jsonrpc_return_error(r, 400, "set pin and val", NULL);
+    jsonrpc_return_error(r, 400, "set 'on' to true or false", NULL);
   }
 }
 
@@ -24,7 +19,7 @@ static void math_sum_rpc(struct jsonrpc_request *r) {
   double a, b;
   if (mjson_get_number(r->params, r->params_len, "$[0]", &a) &&
       mjson_get_number(r->params, r->params_len, "$[1]", &b)) {
-    jsonrpc_return_success(r, "{%Q:%d}", "result", (int) (a + b));
+    jsonrpc_return_success(r, "{%Q:%g}", "result", a + b);
   } else {
     jsonrpc_return_error(r, 400, "pass [NUM1, NUM2]", NULL);
   }
@@ -37,7 +32,7 @@ static void taskfunc(void *param) {
 
   // Set up JSON-RPC server
   jsonrpc_init(NULL, NULL);
-  jsonrpc_export("gpio.write", gpio_write_rpc);
+  jsonrpc_export("led", gpio_led_rpc);
   jsonrpc_export("math.sum", math_sum_rpc);
 
   for (;;) {
@@ -61,7 +56,11 @@ static void taskfunc(void *param) {
 
 int main(void) {
   rtos_init();
-  uart_init(UART, UART_TX, UART_RX, 115200);  // UART, UART_TX and UART_RX
+  gpio_output(LED1);
+  uart_init(UART, 115200);
+#if 0
+  for (;;) rtos_msleep(500), gpio_toggle(LED1), uart_write_buf(UART, "hi\n", 3);
+#endif
   rtos_task_create(taskfunc, UART, 2048);     // are defined in mcu.h
   rtos_schedule();
   return 0;

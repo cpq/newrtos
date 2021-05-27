@@ -1,4 +1,4 @@
 SELF_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
-MCU_FLAGS ?= -mfloat-abi=soft -mcpu=cortex-m4 -mthumb
+MCU_FLAGS ?= -mcpu=cortex-m0 -mthumb -mfloat-abi=soft
 
 include $(SELF_DIR)/../../arch/common.mk

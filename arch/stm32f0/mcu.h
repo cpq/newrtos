@@ -1,17 +1,16 @@
 // Copyright (c) 2021 Sergey Lyubka
 // All rights reserved
 //
-// RM0316 https://www.st.com/resource/en/reference_manual/DM00043574-.pdf
+// RM0091
 
 #pragma once
 
 #include "arch/common.h"
 
 struct gpio {
-  volatile uint32_t MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, LCKR, AFR[2],
-      BRR;
+  volatile uint32_t MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR;
+  volatile uint32_t LCKR, AFR[2], BRR;
 };
-
 static inline struct gpio *gpio_bank(uint16_t pin) {
   return (struct gpio *) (0x48000000 + 0x400 * (pin >> 8));
 }
@@ -45,10 +44,12 @@ static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
     gpio->AFR[1] |= ((uint32_t) af) << ((n - 8) * 4);
   }
 }
+
 static inline void gpio_input(uint16_t pin) {
   gpio_init(pin, GPIO_MODE_INPUT, GPIO_OTYPE_PUSH_PULL, GPIO_SPEED_MEDIUM,
             GPIO_PULL_NONE, 0);
 }
+
 static inline void gpio_output(uint16_t pin) {
   gpio_init(pin, GPIO_MODE_OUTPUT, GPIO_OTYPE_PUSH_PULL, GPIO_SPEED_MEDIUM,
             GPIO_PULL_NONE, 0);
@@ -56,21 +57,10 @@ static inline void gpio_output(uint16_t pin) {
 
 struct rcc {
   volatile uint32_t CR, CFGR, CIR, APB2RSTR, APB1RSTR, AHBENR, APB2ENR, APB1ENR,
-      BDCR, CSR, AHBRSTR, CFGR2, CFGR3;
+      BDCR, CSR, AHBRSTR, CFGR2, CFGR3, CR2;
 };
-#define RCC ((struct rcc *) 0x40021000)
 
-static inline void init_clock(void) {
-  FLASH->ACR = 0x12;
-  RCC->CR |= BIT(0);                      // HSI ON
-  while (!(RCC->CR & BIT(1))) (void) 0;   // Wait
-  RCC->CFGR = 15UL << 18;                 // PLL_16. 8MHz HSI / 2 * 16 = 64MHz
-  RCC->CR |= BIT(24);                     // PLL ON
-  while (!(RCC->CR & BIT(25))) (void) 0;  // Wait
-  RCC->CFGR |= 2;                         // Use PLL
-  rtos_freq_set(64000000);
-  SysTick_Config(rtos_freq_get() / 1000);  // 1KHz SysTick
-}
+#define RCC ((struct rcc *) 0x40021000)
 
 struct uart {
   volatile uint32_t CR1, CR2, CR3, BRR, GTPR, RTOR, RQR, ISR, ICR;
@@ -79,17 +69,19 @@ struct uart {
 #define UART1 ((struct uart *) 0x40013800)
 #define UART2 ((struct uart *) 0x40004400)
 #define UART3 ((struct uart *) 0x40004800)
+#define UART4 ((struct uart *) 0x40004c00)
 
 static inline void uart_init(struct uart *uart, unsigned long baud) {
-  // https://www.st.com/resource/en/datasheet/stm32f303k8.pdf
+  // https://www.st.com/resource/en/datasheet/stm32f072rb.pdf table 15
   uint8_t af = 0;           // Alternate function
   uint16_t rx = 0, tx = 0;  // pins
-  if (uart == UART1) af = 7, tx = PIN('A', 9), rx = PIN('A', 10);
-  if (uart == UART2) af = 7, tx = PIN('A', 2), rx = PIN('A', 15);
-  if (uart == UART3) af = 7, tx = PIN('B', 10), rx = PIN('B', 11);
+  if (uart == UART1) af = 1, tx = PIN('B', 6), rx = PIN('B', 7);
+  if (uart == UART2) af = 1, tx = PIN('A', 2), rx = PIN('A', 3);
+  if (uart == UART3) af = 4, tx = PIN('B', 10), rx = PIN('B', 11);
+  if (uart == UART4) af = 4, tx = PIN('A', 0), rx = PIN('A', 1);
   gpio_init(tx, GPIO_MODE_AF, GPIO_OTYPE_PUSH_PULL, GPIO_SPEED_MEDIUM, 0, af);
   gpio_init(rx, GPIO_MODE_AF, GPIO_OTYPE_PUSH_PULL, GPIO_SPEED_MEDIUM, 0, af);
-  uart->BRR = rtos_freq_get() / baud;     // Set baud rate, TRM 29.5.4
+  uart->BRR = rtos_freq_get() / baud;     // Set baud rate
   uart->CR1 |= BIT(0) | BIT(2) | BIT(3);  // Enable this UART, RE, TE
 }
 
@@ -110,11 +102,28 @@ static inline uint8_t uart_read_byte(struct uart *uart) {
   return (uint8_t)(uart->RDR & 255);
 }
 
-#ifndef LED1
-#define LED1 PIN('B', 3)  // On-board LED pin
+struct scb {
+  volatile uint32_t CPUID, ICSR, RESERVED0, AIRCR, SCR, CCR, RESERVED1, SHP[2];
+};
+#define SCB ((struct scb *) 0xe000ed00)
+
+static inline void init_clock(void) {
+  FLASH->ACR |= 0x11;                     // Set flash wait states
+  RCC->CFGR = 0x280000;                   // PLL_MUL_12
+  RCC->CR |= BIT(24);                     // PLL_ON
+  while (!(RCC->CR & BIT(25))) (void) 0;  // PLL_READY
+  RCC->CFGR &= ~3UL;                      // Clear off current clock source
+  RCC->CFGR |= 2;                         // Set clock source to PLL
+
+  rtos_freq_set(48000000);                 // HSI/2 * PLL_MUL_12 = 48
+  SysTick_Config(rtos_freq_get() / 1000);  // 1KHz SysTick interrupt
+}
+
+#if !defined(LED1)
+#define LED1 PIN('A', 5)  // On-board LED pin
 #endif
 
-#ifndef UART
+#if !defined(UART)
 #define UART UART2
 #endif
 
@@ -122,8 +131,7 @@ static inline void rtos_init(void) {
   init_ram();
   init_clock();
 
-  RCC->AHBENR |= BIT(17) | BIT(18) | BIT(19);  // Enable GPIO banks A,B,C
-  RCC->APB2ENR |= BIT(14);                     // Enable USART1 clock
-  RCC->APB1ENR |= BIT(17) | BIT(18);           // Enable USART2 and USART3
-  // gpio_init(LED1, GPIO_OUT, GPIO_PP, GPIO_SPEED_LOW, GPIO_PULL_NONE, 0);
+  RCC->AHBENR |= BIT(17) | BIT(18) | BIT(19) | BIT(20);  // Enable GPIO banks
+  RCC->APB1ENR |= BIT(17) | BIT(18) | BIT(19);  // Enable USART2 and USART3
+  RCC->APB2ENR |= BIT(14);                     // Enable USART1
 }

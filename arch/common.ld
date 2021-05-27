@@ -2,8 +2,8 @@ ENTRY(_reset);
 _estack     = ORIGIN(ram) + LENGTH(ram);  /* for boot.s and init_heap() */
 SECTIONS {
   .vectors  : { KEEP(*(.vectors)) } > rom
-  .text       : { *(.text*) } > rom
-  .rodata     : { *(.rodata*) } > rom
+  .text     : { *(.text*)         } > rom
+  .rodata   : { *(.rodata*)       } > rom
 
   .data : {
     _sdata = .;   /* for init_ram() */

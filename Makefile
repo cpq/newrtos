@@ -1,6 +1,5 @@
-#EXAMPLES = $(wildcard examples/*)
-EXAMPLES = examples/blinky
-ARCHITECTURES = stm32f1 stm32f3 stm32f7
+EXAMPLES = $(wildcard examples/*)
+ARCHITECTURES = stm32f0 stm32f1 stm32f3 #stm32f7
 
 # Build firmwares for all supported architectures
 all:
