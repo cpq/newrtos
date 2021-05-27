@@ -3,8 +3,18 @@
 An open source firmware development framework that includes RTOS and
 drivers. Features include:
 
-- Uses GCC toolchain and no extra dependencies
-- All RTOS tasks are of equal priority, with 1ms context switch interval
+- Uses GCC + newlib and no extra dependencies
+- Unified API across architectures
+- RTOS scheduling is round robin with 1ms time slice
+
+# Feature support matrix
+
+|   ARCH  | Clock   | Task | Mutex | Timer | Queue | GPIO | UART | SPI | I2C |
+| ------- | ------- | ---- | ----  | ----- | ----- | ---- | ---- | --- | --- |
+| stm32f0 | 48Mhz   | yes  | -     | -     | -     | yes  | yes  | -   | -   |
+| stm32f1 | 72Mhz   | yes  | -     | -     | -     | yes  | yes  | -   | -   |
+| stm32f3 | 72MHz   | yes  | -     | -     | -     | yes  | yes  | -   | -   |
+| stm32f7 | 216MHz  | yes  | -     | -     | -     | yes  | -    | -   | -   |
 
 # Build
 
@@ -45,15 +55,6 @@ To flash a firmware, connect your board and run:
   - **uart_write_buf(uart, buf, len);** - write buffer
   - **uart_read_ready(uart);** - return non-0 if UART can be read
   - **uart_read_byte(uart);** - read one byte
-
-# API support matrix
-
-|   ARCH  | Clock   | Task | GPIO | UART | SPI | I2C |
-| ------- | ------- | ---- | ---- | ---- | --- | --- |
-| stm32f0 | 48Mhz   | yes  | yes  | yes  | -   | -   |
-| stm32f1 | 72Mhz   | yes  | yes  | yes  | -   | -   |
-| stm32f3 | 72MHz   | yes  | yes  | yes  | -   | -   |
-| stm32f7 | 216MHz  | yes  | yes  | -    | -   | -   |
 
 # Debugging
 
