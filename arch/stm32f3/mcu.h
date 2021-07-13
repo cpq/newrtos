@@ -123,7 +123,6 @@ static inline void rtos_init(void) {
   init_clock();
 
   RCC->AHBENR |= BIT(17) | BIT(18) | BIT(19);  // Enable GPIO banks A,B,C
-  RCC->APB2ENR |= BIT(14);                     // Enable USART1 clock
+  RCC->APB2ENR |= BIT(14);                     // Enable USART1
   RCC->APB1ENR |= BIT(17) | BIT(18);           // Enable USART2 and USART3
-  // gpio_init(LED1, GPIO_OUT, GPIO_PP, GPIO_SPEED_LOW, GPIO_PULL_NONE, 0);
 }

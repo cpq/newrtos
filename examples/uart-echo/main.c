@@ -17,8 +17,8 @@ static void taskfunc(void *param) {
 
 int main(void) {
   rtos_init();
-  uart_init(UART, UART_TX, UART_RX, 115200);  // UART, UART_TX and UART_RX
-  rtos_task_create(taskfunc, UART, 512);      // are defined in mcu.h
+  uart_init(UART, 115200);                // UART, UART_TX and UART_RX
+  rtos_task_create(taskfunc, UART, 512);  // are defined in mcu.h
   rtos_schedule();
   return 0;
 }
