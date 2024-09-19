@@ -37,10 +37,10 @@ static inline void gpio_init(uint16_t pin, uint8_t mode, uint8_t type,
   gpio->PUPDR &= ~(3UL << (n * 2));
   gpio->PUPDR |= ((uint32_t) pull) << (n * 2);
   if (n < 8) {
-    gpio->AFR[0] &= 15UL << (n * 4);
+    gpio->AFR[0] &= ~(15UL << (n * 4));
     gpio->AFR[0] |= ((uint32_t) af) << (n * 4);
   } else {
-    gpio->AFR[1] &= 15UL << ((n - 8) * 4);
+    gpio->AFR[1] &= ~(15UL << ((n - 8) * 4));
     gpio->AFR[1] |= ((uint32_t) af) << ((n - 8) * 4);
   }
 }
